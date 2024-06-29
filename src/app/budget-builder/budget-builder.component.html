@@ -1,0 +1,160 @@
+<div class="p-4">
+  <h2 class="text-2xl font-bold leading-7 text-gray-900">Budget builder</h2>
+
+  <div class="mt-10 grid gap-x-6 gap-y-8 grid-cols-6">
+    <div class="col-span-2">
+      <label for="startMonth"
+             class="block text-sm font-medium leading-6 text-gray-900">Start Month:</label>
+      <div class="mt-1">
+        <input type="month" name="first-name" id="startMonth"
+               class="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1
+             ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-1
+             focus:ring-inset focus:ring-indigo-300"
+               [(ngModel)]="startMonth"
+               (change)="onChangeDate()">
+
+      </div>
+    </div>
+    <div class="col-span-2">
+      <label for="endMonth"
+             class="block text-sm font-medium leading-6 text-gray-900">End Month:</label>
+      <div class="mt-1">
+        <input type="month" name="first-name" id="endMonth"
+               class="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1
+             ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-1
+             focus:ring-inset focus:ring-indigo-300"
+               [(ngModel)]="endMonth"
+               (change)="onChangeDate()">
+      </div>
+    </div>
+    <div class="col-span-2 mt-7">
+      <button class="rounded-md bg-indigo-600 px-2 py-2 mb-3 text-sm text-white"
+              (click)="generateTable()">Generate Table
+      </button>
+    </div>
+  </div>
+
+
+  <div *ngIf="months.length" class="overflow-auto"
+       (click)="showPopup = false">
+    <table class="table-auto border-collapse border border-slate-500 min-w-full">
+      <thead>
+      <tr>
+        <th class="border w-32">Start Period V End Period V</th>
+        <th *ngFor="let month of months"
+            class="border min-w-28">{{ month }}
+        </th>
+      </tr>
+      </thead>
+      <tbody>
+      <!--   Income   -->
+      <tr>
+        <td class="font-bold border"
+            [colSpan]="months.length + 1">Income
+        </td>
+      </tr>
+      <tr *ngFor="let item of incomes">
+        <td contenteditable="true"
+            class="border">{{ item.label }}
+        </td>
+        <td *ngFor="let month of item.children"
+            (contextmenu)="onRightClick($event, item, month, typeSelected.INCOME)"
+            class="border">
+          <input type="number" class="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1
+             ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-1
+             focus:ring-inset focus:ring-indigo-300"
+                 [(ngModel)]="month.value"
+                 (input)="updateTotals(typeSelected.INCOME)">
+        </td>
+      </tr>
+      <tr>
+        <td class="cursor-pointer border" [colSpan]="months.length + 1"
+            (click)="addIncomes()">Add new ‘Income’ category
+        </td>
+      </tr>
+      <tr class="border"></tr>
+      <tr class="font-bold border">
+        <td>Income Total</td>
+        <td *ngFor="let month of months"
+            class="border text-right">{{ overallTotalsIncome[month] || 0 }}</td>
+      </tr>
+
+      <!--   Expenses   -->
+      <tr>
+        <td class="font-bold border"
+            [colSpan]="months.length + 1">Expenses
+        </td>
+      </tr>
+      <tr *ngFor="let item of operationalExpenses">
+        <td contenteditable="true"
+            class="border">{{ item.label }}
+        </td>
+        <td *ngFor="let month of item.children"
+            (contextmenu)="onRightClick($event, item, month, typeSelected.OPERATIONAL_EXPENSE)"
+            class="border">
+          <input type="number" class="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1
+             ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-1
+             focus:ring-inset focus:ring-indigo-300"
+                 [(ngModel)]="month.value"
+                 (input)="updateTotals(typeSelected.OPERATIONAL_EXPENSE)">
+        </td>
+      </tr>
+      <tr>
+        <td class="cursor-pointer border" [colSpan]="months.length + 1"
+            (click)="addOperationalExpensesCategory()">Add new 'Operational Expenses' category
+        </td>
+      </tr>
+      <tr *ngFor="let item of expenses">
+        <td contenteditable="true"
+            class="border">{{ item.label }}
+        </td>
+        <td *ngFor="let month of item.children"
+            (contextmenu)="onRightClick($event, item, month, typeSelected.EXPENSE)"
+            class="border">
+          <input type="number" class="block w-full rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1
+             ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-1
+             focus:ring-inset focus:ring-indigo-300 text-right"
+                 [(ngModel)]="month.value"
+                 (input)="updateTotals(typeSelected.EXPENSE)">
+        </td>
+      </tr>
+      <tr>
+        <td class="cursor-pointer border" [colSpan]="months.length + 1"
+            (click)="addExpensesCategory()">Add new Expenses category
+        </td>
+      </tr>
+      </tbody>
+      <tfoot>
+      <tr>
+        <td class="border font-bold">Total Expenses</td>
+        <td *ngFor="let month of months"
+            class="border font-bold text-right">
+          {{ sumAllExpenses(month) }}
+        </td>
+      </tr>
+      <tr>
+        <td class="border font-bold">Profit / Loss</td>
+        <td *ngFor="let month of months"
+            class="border text-right">{{ 0 }}</td>
+      </tr>
+      <tr>
+        <td class="border font-bold">Opening Balance</td>
+        <td *ngFor="let month of months"
+            class="border text-right">{{ 0 }}</td>
+      </tr>
+      <tr>
+        <td class="border font-bold">Closing Balance</td>
+        <td *ngFor="let month of months"
+            class="border text-right">{{ 0 }}</td>
+      </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<div *ngIf="showPopup" class="popup flex flex-col items-baseline" [ngStyle]="popupStyle">
+  <button (click)="applyToAll()">Apply to all</button>
+  <button (click)="deleteCategory()">Delete Category</button>
+</div>
+
+
